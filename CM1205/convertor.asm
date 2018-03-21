@@ -14,26 +14,34 @@ STD_OUTPUT_HANDLE equ -11
 	
 		bufSize = 80
  	 	inputHandle DWORD ?
- 	    buffer db bufSize dup(?)
+ 	    value_buffer DW bufSize dup(?)
+		type_buffer DWORD bufSize dup(?)
  	    bytes_read  DWORD  ?
-		sum_string db "Test Console output",0
+		value_msg db "Please enter the value you wish to convert:",0
+		type_msg db "Please enter the unit you wish to convert this to (C/F):"
  	 	outputHandle DWORD ?
 		bytes_written dd ?
 .code
 	main proc
- 	    invoke GetStdHandle, STD_INPUT_HANDLE
- 	    mov inputHandle, eax
- 		invoke ReadConsoleA, inputHandle, addr buffer, bufSize, addr bytes_read,0
- 	
 		invoke GetStdHandle, STD_OUTPUT_HANDLE
  	    mov outputHandle, eax
-		mov	eax,LENGTHOF sum_string	;length of sum_string
-		invoke WriteConsoleA, outputHandle, addr sum_string, eax, addr bytes_written, 0
+		mov eax,LENGTHOF value_msg
+		invoke WriteConsoleA, outputHandle, addr value_msg, eax, addr bytes_written, 0
 
- 	    invoke WriteConsoleA, outputHandle, addr buffer, bytes_read, addr bytes_written, 0
+ 	    invoke GetStdHandle, STD_INPUT_HANDLE
+ 	    mov inputHandle, eax
+ 		invoke ReadConsoleA, inputHandle, addr value_buffer, bufSize, addr bytes_read,0
 
-		mov eax,0
-		mov eax,bytes_written
+		invoke GetStdHandle, STD_OUTPUT_HANDLE
+		mov eax,LENGTHOF type_msg
+		invoke WriteConsoleA, outputHandle, addr type_msg, eax, addr bytes_written, 0
+
+		invoke GetStdHandle, STD_INPUT_HANDLE
+		mov inputHandle, eax
+ 		invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0
+
+		;mov ax,value_buffer
+		;mov ax,type_buffer
 		push	0
 
 		call	ExitProcess@4
