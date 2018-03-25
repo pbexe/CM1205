@@ -45,19 +45,19 @@ STD_OUTPUT_HANDLE equ -11
  		invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0
 		sub bytes_read, 2	
 
-		mov ecx, value_bytes_read ; Set counter for the for loop
-		mov ebx, 0 ; Used to increment through buffer
-		mov input_value, 0 ; Initialize the input value 
-		read_loop: ; Start of for loop
-			mov eax, input_value ; Load the input value into eax
-			mov edx, 10 ; This is what eax is going to be multiplied by
-			mul edx ; Do the multiplication
-			mov input_value, eax ; Save eax back into memory so it is not overwritten
-			mov al, byte ptr value_buffer + [ebx] ; Load the next value from the buffer into register
-			movzx eax, al ; Allow use of the whole 32 bits
-			sub eax, 30h ; ASCII to int
-			add eax, input_value ; Add new value with current total
-			mov input_value, eax ; Save this value back to memory again
+		mov ecx, value_bytes_read
+		mov ebx, 0
+		mov output_value, 0
+		read_loop:
+			mov eax, input_value
+			mov edx, 10
+			mul edx
+			mov input_value, eax
+			mov al, byte ptr value_buffer + [ebx]
+			movzx eax, al
+			sub eax, 30h
+			add eax, input_value
+			mov input_value, eax
 			inc ebx
 			loop read_loop
 
