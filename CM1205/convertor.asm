@@ -36,11 +36,9 @@ STD_OUTPUT_HANDLE equ -11
  		invoke ReadConsoleA, inputHandle, addr value_buffer, bufSize, addr value_bytes_read,0
 		sub value_bytes_read, 2	
 
-		invoke GetStdHandle, STD_OUTPUT_HANDLE
 		mov eax,LENGTHOF type_msg
 		invoke WriteConsoleA, outputHandle, addr type_msg, eax, addr bytes_written, 0
 
-		invoke GetStdHandle, STD_INPUT_HANDLE
 		mov inputHandle, eax
  		invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0
 		sub bytes_read, 2	
@@ -61,6 +59,21 @@ STD_OUTPUT_HANDLE equ -11
 			inc ebx
 			loop read_loop
 
+		mov al, byte ptr type_buffer
+		cmp al, 67
+		je celcius
+		cmp al, 70
+		je farenheit
+
+		celcius:
+		mov eax, 1
+		jmp finish
+
+		farenheit:
+		mov eax, 2
+		jmp finish
+
+		finish:
 		push	0
 
 		call	ExitProcess@4
