@@ -24,6 +24,7 @@ STD_OUTPUT_HANDLE equ -11
 		bytes_written dd ?
 		input_value DWORD ?
 		output_value DWORD ?
+		output_string byte bufSize dup(?)
 .code
 	main proc
 		invoke GetStdHandle, STD_OUTPUT_HANDLE
@@ -39,23 +40,22 @@ STD_OUTPUT_HANDLE equ -11
 		mov eax,LENGTHOF type_msg
 		invoke WriteConsoleA, outputHandle, addr type_msg, eax, addr bytes_written, 0
 
-		mov inputHandle, eax
  		invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0
 		sub bytes_read, 2	
 
-		mov ecx, value_bytes_read ; Set counter for the for loop
-		mov ebx, 0 ; Used to increment through buffer
-		mov input_value, 0 ; Initialize the input value 
-		read_loop: ; Start of for loop
-			mov eax, input_value ; Load the input value into eax
-			mov edx, 10 ; This is what eax is going to be multiplied by
-			mul edx ; Do the multiplication
-			mov input_value, eax ; Save eax back into memory so it is not overwritten
+		mov ecx, value_bytes_read                 ; Set counter for the for loop
+		mov ebx, 0                                ; Used to increment through buffer
+		mov input_value, 0                        ; Initialize the input value 
+		read_loop:                                ; Start of for loop
+			mov eax, input_value                  ; Load the input value into eax
+			mov edx, 10                           ; This is what eax is going to be multiplied by
+			mul edx                               ; Do the multiplication
+			mov input_value, eax                  ; Save eax back into memory so it is not overwritten
 			mov al, byte ptr value_buffer + [ebx] ; Load the next value from the buffer into register
-			movzx eax, al ; Allow use of the whole 32 bits
-			sub eax, 30h ; ASCII to int
-			add eax, input_value ; Add new value with current total
-			mov input_value, eax ; Save this value back to memory again
+			movzx eax, al                         ; Allow use of the whole 32 bits
+			sub eax, 30h                          ; ASCII to int
+			add eax, input_value                  ; Add new value with current total
+			mov input_value, eax                  ; Save this value back to memory again
 			inc ebx
 			loop read_loop
 
@@ -66,14 +66,53 @@ STD_OUTPUT_HANDLE equ -11
 		je farenheit
 
 		celcius:
-		mov eax, 1
+		mov eax, input_value
+		sub eax, 32
+		mov ebx, 5
+		mul ebx
+		mov ebx, 100
+		mul ebx
+		mov ebx, 9
+		div ebx
+		mov output_value, eax
 		jmp finish
 
 		farenheit:
-		mov eax, 2
+		mov eax, input_value
+		mov ebx, 9
+		mul ebx ; 9*centigrade
+		mov ebx, 100 ; Multiplication factor to give 2 decimal places
+		mul ebx
+		mov ebx, 5
+		div ebx
+		add eax, 3200
+		mov output_value, eax
+
 		jmp finish
 
 		finish:
+		mov eax, output_value
+		mov ecx, 0
+		output_loop:
+			cmp ecx, 2
+			je dot
+			cmp eax, 0
+			je ending
+			mov ebx, 10
+			mov edx, 0
+			div ebx
+			add dl, 30h
+			mov byte ptr output_string + [ecx], dl
+			inc ecx
+			jmp output_loop
+			dot:
+				mov byte ptr output_string + [ecx], 02Eh
+				inc ecx
+				jmp output_loop
+
+		ending:
+		mov eax,LENGTHOF output_string
+		invoke WriteConsoleA, outputHandle, addr output_string, eax, addr bytes_written, 0
 		push	0
 
 		call	ExitProcess@4
