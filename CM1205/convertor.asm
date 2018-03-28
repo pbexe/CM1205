@@ -63,37 +63,15 @@ STD_OUTPUT_HANDLE equ -11
 
 		mov al, byte ptr type_buffer              ; Get the unit to convert to
 		cmp al, 67                                ; If it is C
-		je celcius                                ; Jump to celcius
+		je calc_celcius
 		cmp al, 70                                ; If it is F
-		je farenheit                              ; Jump to farenheit
-
-		celcius:
-		mov eax, input_value                      ; Load the input value
-		sub eax, 32                               ; F - 32
-		mov ebx, 5
-		mul ebx                                   ; (f - 32) * 5
-		mov ebx, 100
-		mul ebx                                   ; Multiply it by 100 so I don't need to use floating points
-		mov ebx, 9
-		div ebx ; Divide by 9
-		mov output_value, eax ; Save the result
-		jmp finish
-
-		farenheit:
-		mov eax, input_value
-		mov ebx, 9
-		mul ebx ; 9*centigrade
-		mov ebx, 100 ; Multiplication factor to give 2 decimal places
-		mul ebx
-		mov ebx, 5
-		div ebx
-		add eax, 3200
-		mov output_value, eax
-
-		jmp finish
-
-		finish:
-		mov eax, output_value
+		je calc_farenheit
+		calc_celcius:
+		call celcius                                ; Call celcius
+		jmp reverse
+		calc_farenheit:
+		call farenheit                              ; Call farenheit
+		reverse:
 		mov ecx, 0
 		mov final_length, 0
 		output_loop:
@@ -132,5 +110,34 @@ STD_OUTPUT_HANDLE equ -11
 		push	0
 
 		call	ExitProcess@4
+
+
+
+				celcius PROC
+		mov eax, input_value                      ; Load the input value
+		sub eax, 32                               ; F - 32
+		mov ebx, 5
+		mul ebx                                   ; (f - 32) * 5
+		mov ebx, 100
+		mul ebx                                   ; Multiply it by 100 so I don't need to use floating points
+		mov ebx, 9
+		div ebx                                   ; Divide by 9
+		ret
+		celcius ENDP
+
+		farenheit PROC
+		mov eax, input_value
+		mov ebx, 9
+		mul ebx ; 9*centigrade
+		mov ebx, 100 ; Multiplication factor to give 2 decimal places
+		mul ebx
+		mov ebx, 5
+		div ebx
+		add eax, 3200
+		ret
+		farenheit ENDP
 main endp
+
+
+
 end
