@@ -25,6 +25,8 @@ STD_OUTPUT_HANDLE equ -11
 		input_value DWORD ?
 		output_value DWORD ?
 		output_string byte bufSize dup(?)
+		output_buffer byte bufSize dup(?)
+		final_length byte ?
 .code
 	main proc
 		invoke GetStdHandle, STD_OUTPUT_HANDLE
@@ -59,22 +61,22 @@ STD_OUTPUT_HANDLE equ -11
 			inc ebx
 			loop read_loop
 
-		mov al, byte ptr type_buffer
-		cmp al, 67
-		je celcius
-		cmp al, 70
-		je farenheit
+		mov al, byte ptr type_buffer              ; Get the unit to convert to
+		cmp al, 67                                ; If it is C
+		je celcius                                ; Jump to celcius
+		cmp al, 70                                ; If it is F
+		je farenheit                              ; Jump to farenheit
 
 		celcius:
-		mov eax, input_value
-		sub eax, 32
+		mov eax, input_value                      ; Load the input value
+		sub eax, 32                               ; F - 32
 		mov ebx, 5
-		mul ebx
+		mul ebx                                   ; (f - 32) * 5
 		mov ebx, 100
-		mul ebx
+		mul ebx                                   ; Multiply it by 100 so I don't need to use floating points
 		mov ebx, 9
-		div ebx
-		mov output_value, eax
+		div ebx ; Divide by 9
+		mov output_value, eax ; Save the result
 		jmp finish
 
 		farenheit:
@@ -93,6 +95,7 @@ STD_OUTPUT_HANDLE equ -11
 		finish:
 		mov eax, output_value
 		mov ecx, 0
+		mov final_length, 0
 		output_loop:
 			cmp ecx, 2
 			je dot
@@ -103,16 +106,29 @@ STD_OUTPUT_HANDLE equ -11
 			div ebx
 			add dl, 30h
 			mov byte ptr output_string + [ecx], dl
+			mov bl, final_length
+			inc bl
+			mov final_length, bl
 			inc ecx
 			jmp output_loop
 			dot:
 				mov byte ptr output_string + [ecx], 02Eh
+				mov bl, final_length
+				inc bl
+				mov final_length, bl
 				inc ecx
 				jmp output_loop
 
 		ending:
-		mov eax,LENGTHOF output_string
-		invoke WriteConsoleA, outputHandle, addr output_string, eax, addr bytes_written, 0
+		movzx ecx,final_length
+		mov ebx, 0
+		reverse_loop:
+			mov al, byte ptr output_string + [ebx]
+			mov byte ptr output_buffer + [ecx], al
+			inc ebx
+			loop reverse_loop
+		mov eax, LENGTHOF output_buffer
+		invoke WriteConsoleA, outputHandle, addr output_buffer, eax, addr bytes_written, 0
 		push	0
 
 		call	ExitProcess@4
