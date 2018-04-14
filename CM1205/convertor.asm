@@ -3,15 +3,12 @@
 option casemap :none
 .stack 4096
 extrn ExitProcess@4: proc
-
 GetStdHandle proto :dword
 ReadConsoleA  proto :dword, :dword, :dword, :dword, :dword
 WriteConsoleA proto :dword, :dword, :dword, :dword, :dword
 STD_INPUT_HANDLE equ -10
 STD_OUTPUT_HANDLE equ -11
-
 .data
-
     bufSize = 80 ; Length of standard buffer
     inputHandle DWORD ? ; Input handle
     value_buffer byte bufSize dup(?) ; Buffer to hold value input
@@ -30,21 +27,17 @@ STD_OUTPUT_HANDLE equ -11
 .code
   main proc
     invoke GetStdHandle, STD_OUTPUT_HANDLE ; Get the standard output handle
-     mov outputHandle, eax ; Save it
+    mov outputHandle, eax ; Save it
     mov eax,LENGTHOF value_msg ; Get the length of the first message
     invoke WriteConsoleA, outputHandle, addr value_msg, eax, addr bytes_written, 0 ; Print the first message
-
-     invoke GetStdHandle, STD_INPUT_HANDLE ; Get the standard input handle
-     mov inputHandle, eax ; Save it
-     invoke ReadConsoleA, inputHandle, addr value_buffer, bufSize, addr value_bytes_read,0 ; Get the user's input
+    invoke GetStdHandle, STD_INPUT_HANDLE ; Get the standard input handle
+    mov inputHandle, eax ; Save it
+    invoke ReadConsoleA, inputHandle, addr value_buffer, bufSize, addr value_bytes_read,0 ; Get the user's input
     sub value_bytes_read, 2 ; Remove the CL RF
-
     mov eax,LENGTHOF type_msg ; Get the length of the second message
     invoke WriteConsoleA, outputHandle, addr type_msg, eax, addr bytes_written, 0 ; Print the message
-
-     invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0 ; Get the user's second input
+    invoke ReadConsoleA, inputHandle, addr type_buffer, bufSize, addr bytes_read,0 ; Get the user's second input
     sub bytes_read, 2 ; Remove the CL RF
-
     mov ecx, value_bytes_read ; Set counter for the for loop
     mov ebx, 0 ; Used to increment through buffer
     mov input_value, 0 ; Initialize the input value
